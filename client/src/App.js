@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import io from 'socket.io-client';
 import MainMenu from './components/MainMenu';
 import Player1Input from './components/Player1Input';
 import Player2Guess from './components/Player2Guess';
 import './index.css';
 
+console.log('REACT_APP_WS_URL:', process.env.REACT_APP_WS_URL);
+
 const socket = io(process.env.REACT_APP_WS_URL, {
   transports: ['websocket'],
   withCredentials: true,
 });
-console.log(socket);
 
 socket.on('connect', () => {
   console.log('WebSocket connected successfully');
@@ -18,7 +19,6 @@ socket.on('connect', () => {
 socket.on('connect_error', (error) => {
   console.error('WebSocket connection failed:', error);
 });
-
 
 function App() {
   const [gameStarted, setGameStarted] = useState(false);
@@ -29,15 +29,23 @@ function App() {
   const [view, setView] = useState('menu'); // 'menu', 'player1', 'player2'
 
   const startGame = async (data) => {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/start`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...data, roomId }),
-    });
-    if (response.ok) {
-      setHints(data.hints);
-      setGameStarted(true);
-      socket.emit('gameStarted', roomId);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, roomId }),
+      });
+      if (response.ok) {
+        setHints(data.hints);
+        setGameStarted(true);
+        socket.emit('gameStarted', roomId);
+      } else {
+        console.error('Failed to start game:', response.statusText);
+        alert('Не удалось начать игру. Проверьте соединение с сервером.');
+      }
+    } catch (error) {
+      console.error('Error starting game:', error);
+      alert('Ошибка соединения с сервером.');
     }
   };
 
@@ -74,16 +82,21 @@ function App() {
     setPlayerRole(null);
   };
 
-  const updateGameStatus = async () => {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/status?roomId=${roomId}`);
-    const data = await response.json();
-    setGameStatus(data);
-  };
+  const updateGameStatus = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/status?roomId=${roomId}`);
+      const data = await response.json();
+      setGameStatus(data);
+    } catch (error) {
+      console.error('Error updating game status:', error);
+    }
+  }, [roomId]);
 
   const handleCreateRoom = (newRoomId) => {
     setRoomId(newRoomId);
     setPlayerRole('player1');
     setView('player1');
+    console.log(`Player 1: Room ID created - ${newRoomId}`);
   };
 
   const handleJoinRoom = (joinedRoomId) => {
@@ -96,6 +109,7 @@ function App() {
     socket.on('startGame', () => {
       if (playerRole === 'player2') {
         setGameStarted(true);
+        setView('player2');
         updateGameStatus();
       }
     });
@@ -118,17 +132,17 @@ function App() {
       socket.off('updateGameStatus');
       socket.off('gameReset');
     };
-  }, [playerRole]);
+  }, [playerRole, updateGameStatus]);
 
   return (
     <div className="container">
       {view !== 'menu' && <h1>Smoke Of Deceit</h1>}
       <div className={view === 'menu' ? 'main-menu' : 'game-container'}>
         {view === 'menu' && (
-          <MainMenu onCreateRoom={handleCreateRoom} onJoinRoom={handleJoinRoom} />
+          <MainMenu onCreateRoom={handleCreateRoom} onJoinRoom={handleJoinRoom} socket={socket} />
         )}
         {view === 'player1' && !gameStarted && (
-          <Player1Input startGame={startGame} />
+          <Player1Input startGame={startGame} roomId={roomId} />
         )}
         {view === 'player2' && (
           <Player2Guess
