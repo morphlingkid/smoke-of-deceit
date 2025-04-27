@@ -264,3 +264,37 @@ li::before {
     margin-top: 20px;
   }
 }
+
+.main-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.main-menu .card {
+  background: #fff0f5;
+  border: 3px solid #ff99cc;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 20px rgba(255, 153, 204, 0.4);
+  max-width: 400px;
+  text-align: center;
+  animation: popIn 0.5s ease-out;
+}
+
+.main-menu h2 {
+  font-size: 2.5rem;
+  color: #ff3399;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 10px #ff99cc;
+}
+
+.main-menu input {
+  margin-bottom: 25px; /* Расстояние между input и кнопкой */
+}
+
+.main-menu button {
+  margin-bottom: 25px; /* Расстояние между кнопками */
+}
