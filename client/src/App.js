@@ -97,6 +97,7 @@ function App() {
     setPlayerRole('player1');
     setView('player1');
     console.log(`Player 1: Room ID created - ${newRoomId}`);
+    console.log(`Room ID is working`);
   };
 
   const handleJoinRoom = (joinedRoomId) => {
