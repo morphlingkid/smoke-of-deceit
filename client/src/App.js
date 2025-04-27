@@ -9,6 +9,7 @@ const socket = io(process.env.REACT_APP_WS_URL, {
   transports: ['websocket'],
   withCredentials: true,
 });
+console.log(socket);
 
 socket.on('connect', () => {
   console.log('WebSocket connected successfully');
