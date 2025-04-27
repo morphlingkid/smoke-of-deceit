@@ -23,7 +23,7 @@ function Player2Guess({ hints, guessType, guessWord, gameStatus, resetGame, upda
 
   const handleGuessSentence = async () => {
     if (sentence.trim()) {
-      const response = await fetch('https://smoke-of-deceit.onrender.comapi/guess-sentence', {
+      const response = await fetch('https://smoke-of-deceit.onrender.com/api/guess-sentence', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sentence }),
