@@ -10,6 +10,15 @@ const socket = io(process.env.REACT_APP_WS_URL, {
   withCredentials: true,
 });
 
+socket.on('connect', () => {
+  console.log('WebSocket connected successfully');
+});
+
+socket.on('connect_error', (error) => {
+  console.error('WebSocket connection failed:', error);
+});
+
+
 function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [hints, setHints] = useState([]);
