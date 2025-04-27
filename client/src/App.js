@@ -8,7 +8,7 @@ function App() {
   const [gameStatus, setGameStatus] = useState({ guessedWords: [], isGameOver: false });
 
   const startGame = async (data) => {
-    await fetch('http://localhost:5000/api/start', {
+    await fetch('process.env.REACT_APP_API_URL/api/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -18,7 +18,7 @@ function App() {
   };
 
   const guessType = async (guessedType) => {
-    const response = await fetch('http://localhost:5000/api/guess-type', {
+    const response = await fetch('process.env.REACT_APP_API_URL/api/guess-type', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ guessedType }),
@@ -27,7 +27,7 @@ function App() {
   };
 
   const guessWord = async (word) => {
-    await fetch('http://localhost:5000/api/guess-word', {
+    await fetch('process.env.REACT_APP_API_URL/api/guess-word', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ word }),
@@ -36,7 +36,7 @@ function App() {
   };
 
   const resetGame = async () => {
-    await fetch('http://localhost:5000/api/reset', {
+    await fetch('process.env.REACT_APP_API_URL/api/reset', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -46,7 +46,7 @@ function App() {
   };
 
   const updateGameStatus = async () => {
-    const response = await fetch('http://localhost:5000/api/status');
+    const response = await fetch('process.env.REACT_APP_API_URL/api/status');
     const data = await response.json();
     setGameStatus(data);
   };
