@@ -17,6 +17,11 @@ app.use(express.json());
 
 const port = process.env.PORT || 5000;
 
+// Маршрут для проверки
+app.get('/', (req, res) => {
+  res.json({ message: 'Smoke Of Deceit server is running!' });
+});
+
 // Хранилище комнат
 const rooms = {};
 
@@ -177,5 +182,5 @@ app.use((err, req, res, next) => {
 });
 
 server.listen(port, () => {
-  console.log(`Server running at https://smoke-of-deceit.onrender.com`);
+  console.log(`Server running at http://localhost:${port}`);
 });
