@@ -5,11 +5,13 @@ function Player2Guess({ hints, guessType, guessWord, guessSentence, gameStatus, 
   const [wordGuess, setWordGuess] = useState('');
   const [sentenceGuess, setSentenceGuess] = useState('');
   const [message, setMessage] = useState('');
+  const [typeGuessed, setTypeGuessed] = useState(false);
 
   const handleTypeGuess = async () => {
     try {
       const result = await guessType(typeGuess);
       setMessage(result.isCorrect ? 'Тип предложения угадано верно!' : 'Неверный тип предложения.');
+      if (result.isCorrect) setTypeGuessed(true);
     } catch (error) {
       console.error('Error guessing type:', error);
       setMessage('Ошибка при проверке типа предложения.');
@@ -60,66 +62,104 @@ function Player2Guess({ hints, guessType, guessWord, guessSentence, gameStatus, 
     }
   };
 
+  if (gameStatus.isGameOver) {
+    return (
+      <div className="max-w-md mx-auto bg-white shadow-lg rounded-lg p-6 text-center">
+        <h2 className="text-2xl font-bold mb-4">Поздравляем! 🎉</h2>
+        <p className="mb-4">Вы угадали предложение Игрока 1! Чтобы сыграть ещё, нажмите кнопку "Сыграть ещё".</p>
+        <button
+          onClick={resetGame}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Сыграть ещё
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="player2-guess">
-      <h2>Игрок 2: Угадайте предложение</h2>
-      {hints.length > 0 && (
-        <div>
-          <h3>Подсказки:</h3>
-          <ul>
+    <div className="flex flex-col md:flex-row gap-6 p-4 max-w-4xl mx-auto">
+      <div className="flex-1 bg-white shadow-lg rounded-lg p-6">
+        <h2 className="text-2xl font-bold mb-4">Игрок 2: Угадай предложение</h2>
+        {!typeGuessed ? (
+          <div className="mb-4">
+            <label className="block text-lg mb-2">Угадай тип предложения:</label>
+            <select
+              value={typeGuess}
+              onChange={(e) => setTypeGuess(e.target.value)}
+              className="border rounded p-2 w-full mb-2"
+            >
+              <option value="">Выбери тип</option>
+              <option value="утвердительное">Утвердительное</option>
+              <option value="вопросительное">Вопросительное</option>
+              <option value="восклицательное">Восклицательное</option>
+            </select>
+            <button
+              onClick={handleTypeGuess}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Угадать тип
+            </button>
+          </div>
+        ) : (
+          <div>
+            {message && <p className="text-green-600 mb-4">{message}</p>}
+            <div className="mb-4">
+              <label className="block text-lg mb-2">Угадай слово:</label>
+              <input
+                type="text"
+                value={wordGuess}
+                onChange={(e) => setWordGuess(e.target.value)}
+                placeholder="Введи слово"
+                className="border rounded p-2 w-full mb-2"
+              />
+              <button
+                onClick={handleWordGuess}
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Угадать слово
+              </button>
+            </div>
+            <div className="mb-4">
+              <label className="block text-lg mb-2">Угадай предложение:</label>
+              <input
+                type="text"
+                value={sentenceGuess}
+                onChange={(e) => setSentenceGuess(e.target.value)}
+                placeholder="Введи полное предложение"
+                className="border rounded p-2 w-full mb-2"
+              />
+              <button
+                onClick={handleSentenceGuess}
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Угадать предложение
+              </button>
+            </div>
+            {message && !gameStatus.isGameOver && (
+              <p className={message.includes('верно') ? 'text-green-600' : 'text-red-600'}>{message}</p>
+            )}
+          </div>
+        )}
+      </div>
+      <div className="w-full md:w-1/3 bg-white shadow-lg rounded-lg p-6">
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold mb-2">Подсказки:</h3>
+          <ul className="list-disc pl-5">
             {hints.map((hint, index) => (
-              <li key={index}>{hint}</li>
+              <li key={`hint-${index}`} className="mb-1">{hint}</li>
             ))}
           </ul>
         </div>
-      )}
-      <div>
-        <h3>Угадайте тип предложения:</h3>
-        <select value={typeGuess} onChange={(e) => setTypeGuess(e.target.value)}>
-          <option value="">Выберите тип</option>
-          <option value="утвердительное">Утвердительное</option>
-          <option value="вопросительное">Вопросительное</option>
-          <option value="восклицательное">Восклицательное</option>
-        </select>
-        <button onClick={handleTypeGuess}>Проверить тип</button>
-      </div>
-      <div>
-        <h3>Угадайте слово:</h3>
-        <input
-          type="text"
-          value={wordGuess}
-          onChange={(e) => setWordGuess(e.target.value)}
-          placeholder="Введите слово"
-        />
-        <button onClick={handleWordGuess}>Проверить слово</button>
-      </div>
-      <div>
-        <h3>Угадайте предложение:</h3>
-        <input
-          type="text"
-          value={sentenceGuess}
-          onChange={(e) => setSentenceGuess(e.target.value)}
-          placeholder="Введите предложение"
-        />
-        <button onClick={handleSentenceGuess}>Проверить предложение</button>
-      </div>
-      {message && <p>{message}</p>}
-      {gameStatus.guessedWords.length > 0 && (
         <div>
-          <h3>Угаданные слова:</h3>
-          <ul>
+          <h3 className="text-xl font-semibold mb-2">Угаданные слова:</h3>
+          <ul className="list-disc pl-5">
             {gameStatus.guessedWords.map((word, index) => (
-              <li key={index}>{word}</li>
+              <li key={`guessed-${word}-${index}`} className="mb-1">{word}</li>
             ))}
           </ul>
         </div>
-      )}
-      {gameStatus.isGameOver && (
-        <div>
-          <p>Игра завершена!</p>
-          <button onClick={resetGame}>Начать заново</button>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
