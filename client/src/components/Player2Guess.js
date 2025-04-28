@@ -23,14 +23,26 @@ function Player2Guess({ hints, guessType, guessWord, guessSentence, gameStatus, 
 
   const handleGuessSentence = async () => {
     if (sentence.trim()) {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/guess-sentence`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sentence, roomId}),
-      });
-      const data = await response.json();
-      setSentenceResult(data.isCorrect ? 'Поздравляем! Предложение угадано!' : 'Неправильно, попробуй ещё!');
-      await updateGameStatus(); // Trigger status update to refresh isGameOver
+      try {
+        console.log('Sending guess:', { sentence, roomId }); // Лог для отладки
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/guess-sentence`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sentence, roomId }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Server error:', errorData);
+          setSentenceResult(`Ошибка: ${errorData.error || 'Не удалось угадать предложение'}`);
+          return;
+        }
+        const data = await response.json();
+        setSentenceResult(data.isCorrect ? 'Поздравляем! Предложение угадано!' : 'Неправильно, попробуй ещё!');
+        await updateGameStatus();
+      } catch (error) {
+        console.error('Fetch error:', error);
+        setSentenceResult('Ошибка: Не удалось отправить запрос');
+      }
     }
   };
 
