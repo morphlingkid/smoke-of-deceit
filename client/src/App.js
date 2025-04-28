@@ -25,8 +25,8 @@ function App() {
   const [hints, setHints] = useState([]);
   const [gameStatus, setGameStatus] = useState({ guessedWords: [], isGameOver: false });
   const [roomId, setRoomId] = useState(null);
-  const [playerRole, setPlayerRole] = useState(null); // 'player1' или 'player2'
-  const [view, setView] = useState('menu'); // 'menu', 'player1', 'player2'
+  const [playerRole, setPlayerRole] = useState(null);
+  const [view, setView] = useState('menu');
 
   const startGame = async (data) => {
     try {
@@ -45,7 +45,7 @@ function App() {
       }
     } catch (error) {
       console.error('Error starting game:', error);
-      alert('Ошибка соединения с сервером.');
+      alert('Ошибка: Не удалось подключиться к серверу. Попробуйте позже.');
     }
   };
 
@@ -65,6 +65,16 @@ function App() {
       body: JSON.stringify({ word, roomId }),
     });
     await updateGameStatus();
+  };
+
+  const guessSentence = async (sentence) => {
+    console.log('guessSentence called with:', { sentence, roomId }); // Лог для отладки
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/guess-sentence`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sentence, roomId }),
+    });
+    return await response.json();
   };
 
   const resetGame = async () => {
@@ -96,11 +106,11 @@ function App() {
     setRoomId(newRoomId);
     setPlayerRole('player1');
     setView('player1');
-    console.log(`Player 1: Room ID created - ${newRoomId}`);
-    console.log(`Room ID is working`);
+    console.info(`Player 1: Room ID created - ${newRoomId}`);
   };
 
   const handleJoinRoom = (joinedRoomId) => {
+    console.log('handleJoinRoom called with joinedRoomId:', joinedRoomId); // Лог для отладки
     setRoomId(joinedRoomId);
     setPlayerRole('player2');
     setView('player2');
@@ -150,9 +160,11 @@ function App() {
             hints={hints}
             guessType={guessType}
             guessWord={guessWord}
+            guessSentence={guessSentence}
             gameStatus={gameStatus}
             resetGame={resetGame}
             updateGameStatus={updateGameStatus}
+            roomId={roomId}
           />
         )}
       </div>

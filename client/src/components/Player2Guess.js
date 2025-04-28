@@ -1,111 +1,126 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
-function Player2Guess({ hints, guessType, guessWord, gameStatus, resetGame, updateGameStatus }) {
-  const [guessedType, setGuessedType] = useState('');
-  const [typeGuessed, setTypeGuessed] = useState(false);
-  const [word, setWord] = useState('');
-  const [sentence, setSentence] = useState('');
-  const [typeResult, setTypeResult] = useState('');
-  const [sentenceResult, setSentenceResult] = useState('');
+function Player2Guess({ hints, guessType, guessWord, guessSentence, gameStatus, resetGame, updateGameStatus, roomId }) {
+  const [typeGuess, setTypeGuess] = useState('');
+  const [wordGuess, setWordGuess] = useState('');
+  const [sentenceGuess, setSentenceGuess] = useState('');
+  const [message, setMessage] = useState('');
 
-  const handleGuessType = async () => {
-    const response = await guessType(guessedType);
-    setTypeResult(response.isCorrect ? 'Правильно!' : 'Неправильно, попробуй ещё!');
-    setTypeGuessed(true);
-  };
-
-  const handleGuessWord = async () => {
-    if (word.trim()) {
-      await guessWord(word);
-      setWord('');
+  const handleTypeGuess = async () => {
+    try {
+      const result = await guessType(typeGuess);
+      setMessage(result.isCorrect ? 'Тип предложения угадано верно!' : 'Неверный тип предложения.');
+    } catch (error) {
+      console.error('Error guessing type:', error);
+      setMessage('Ошибка при проверке типа предложения.');
     }
   };
 
-  const handleGuessSentence = async () => {
-    if (sentence.trim()) {
-      const response = await fetch('https://smoke-of-deceit.onrender.com/api/guess-sentence', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sentence }),
-      });
-      const data = await response.json();
-      setSentenceResult(data.isCorrect ? 'Поздравляем! Предложение угадано!' : 'Неправильно, попробуй ещё!');
-      await updateGameStatus(); // Trigger status update to refresh isGameOver
+  const handleWordGuess = async () => {
+    try {
+      await guessWord(wordGuess);
+      setWordGuess('');
+      await updateGameStatus();
+    } catch (error) {
+      console.error('Error guessing word:', error);
+      setMessage('Ошибка при проверке слова.');
     }
   };
 
-  if (gameStatus.isGameOver) {
-    return (
-      <div className="card congrats-block">
-        <h2>Поздравляем! 🎉</h2>
-        <p>Вы угадали предложение Игрока 1! Чтобы сыграть ещё, нажмите кнопку "Сыграть ещё".</p>
-        <button onClick={resetGame}>Сыграть ещё</button>
-      </div>
-    );
-  }
+  const handleSentenceGuess = async () => {
+    try {
+      if (!roomId) {
+        console.error('roomId is not provided in handleSentenceGuess');
+        setMessage('Ошибка: ID комнаты отсутствует.');
+        return;
+      }
+      if (!sentenceGuess) {
+        console.error('sentenceGuess is empty');
+        setMessage('Пожалуйста, введите предложение.');
+        return;
+      }
+      console.log('Sending guessSentence request:', { sentence: sentenceGuess, roomId });
+      const result = await guessSentence(sentenceGuess);
+      if (result.error) {
+        console.error('Server error:', result.error);
+        setMessage(`Ошибка: ${result.error}`);
+        if (result.error.includes('Room')) {
+          setMessage('Комната не найдена. Возможно, игра была сброшена. Вернитесь в главное меню.');
+        }
+      } else if (result.isCorrect) {
+        setMessage('Предложение угадано верно! Поздравляем!');
+      } else {
+        setMessage('Предложение угадано неверно. Продолжайте пытаться!');
+      }
+      setSentenceGuess('');
+      await updateGameStatus();
+    } catch (error) {
+      console.error('Error guessing sentence:', error);
+      setMessage('Ошибка при проверке предложения. Попробуйте снова.');
+    }
+  };
 
   return (
-    <>
-      <div className="card">
-        <h2>Игрок 2: Угадай предложение</h2>
-        {!typeGuessed ? (
-          <div>
-            <label>Угадай тип предложения:</label>
-            <select
-              value={guessedType}
-              onChange={(e) => setGuessedType(e.target.value)}
-            >
-              <option value="">Выбери тип</option>
-              <option value="question">Вопрос</option>
-              <option value="statement">Утверждение</option>
-              <option value="exclamation">Восклицание</option>
-            </select>
-            <button onClick={handleGuessType}>Угадать тип</button>
-          </div>
-        ) : (
-          <div>
-            <p>{typeResult}</p>
-            <label>Угадай слово:</label>
-            <input
-              type="text"
-              value={word}
-              onChange={(e) => setWord(e.target.value)}
-              placeholder="Введи слово"
-            />
-            <button onClick={handleGuessWord}>Угадать слово</button>
-            <label>Угадай предложение:</label>
-            <input
-              type="text"
-              value={sentence}
-              onChange={(e) => setSentence(e.target.value)}
-              placeholder="Введи полное предложение"
-            />
-            <button onClick={handleGuessSentence}>Угадать предложение</button>
-            {sentenceResult && !gameStatus.isGameOver && (
-              <p className="success">{sentenceResult}</p>
-            )}
-          </div>
-        )}
-      </div>
-      <div className="sidebar">
-        <div className="hint-block">
+    <div className="player2-guess">
+      <h2>Игрок 2: Угадайте предложение</h2>
+      {hints.length > 0 && (
+        <div>
           <h3>Подсказки:</h3>
           <ul>
             {hints.map((hint, index) => (
-              <li key={`hint-${index}`}>{hint}</li>
+              <li key={index}>{hint}</li>
             ))}
           </ul>
         </div>
-        <div className="guessed-block">
+      )}
+      <div>
+        <h3>Угадайте тип предложения:</h3>
+        <select value={typeGuess} onChange={(e) => setTypeGuess(e.target.value)}>
+          <option value="">Выберите тип</option>
+          <option value="утвердительное">Утвердительное</option>
+          <option value="вопросительное">Вопросительное</option>
+          <option value="восклицательное">Восклицательное</option>
+        </select>
+        <button onClick={handleTypeGuess}>Проверить тип</button>
+      </div>
+      <div>
+        <h3>Угадайте слово:</h3>
+        <input
+          type="text"
+          value={wordGuess}
+          onChange={(e) => setWordGuess(e.target.value)}
+          placeholder="Введите слово"
+        />
+        <button onClick={handleWordGuess}>Проверить слово</button>
+      </div>
+      <div>
+        <h3>Угадайте предложение:</h3>
+        <input
+          type="text"
+          value={sentenceGuess}
+          onChange={(e) => setSentenceGuess(e.target.value)}
+          placeholder="Введите предложение"
+        />
+        <button onClick={handleSentenceGuess}>Проверить предложение</button>
+      </div>
+      {message && <p>{message}</p>}
+      {gameStatus.guessedWords.length > 0 && (
+        <div>
           <h3>Угаданные слова:</h3>
           <ul>
             {gameStatus.guessedWords.map((word, index) => (
-              <li key={`guessed-${word}-${index}`}>{word}</li>
+              <li key={index}>{word}</li>
             ))}
           </ul>
         </div>
-      </div>
-    </>
+      )}
+      {gameStatus.isGameOver && (
+        <div>
+          <p>Игра завершена!</p>
+          <button onClick={resetGame}>Начать заново</button>
+        </div>
+      )}
+    </div>
   );
 }
 
