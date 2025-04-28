@@ -15,11 +15,11 @@ function Player2Guess({ hints, guessType, guessWord, guessSentence, gameStatus, 
   };
 
   const handleGuessWord = async () => {
+    console.log(sentence)
+    console.log(guessSentence)
     if (word.trim()) {
       await guessWord(word);
       setWord('');
-      console.log(sentence)
-      console.log(guessSentence)
     }
   };
 
