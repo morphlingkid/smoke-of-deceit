@@ -15,8 +15,6 @@ function Player2Guess({ hints, guessType, guessWord, guessSentence, gameStatus, 
   };
 
   const handleGuessWord = async () => {
-    console.log(sentence)
-    console.log(guessSentence)
     if (word.trim()) {
       await guessWord(word);
       setWord('');
@@ -28,7 +26,7 @@ function Player2Guess({ hints, guessType, guessWord, guessSentence, gameStatus, 
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/guess-sentence`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sentence }),
+        body: JSON.stringify({ sentence, roomId}),
       });
       const data = await response.json();
       setSentenceResult(data.isCorrect ? 'Поздравляем! Предложение угадано!' : 'Неправильно, попробуй ещё!');
