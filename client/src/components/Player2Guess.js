@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function Player2Guess({ hints, guessType, guessWord, gameStatus, resetGame, updateGameStatus }) {
+function Player2Guess({ hints, guessType, guessWord, guessSentence, gameStatus, resetGame, updateGameStatus, roomId }) {
   const [guessedType, setGuessedType] = useState('');
   const [typeGuessed, setTypeGuessed] = useState(false);
   const [word, setWord] = useState('');
